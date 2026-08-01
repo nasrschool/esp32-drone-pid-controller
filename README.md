@@ -1,30 +1,34 @@
 # ESP32 Drone PID Controller
 
-A Java desktop controller for tuning an ESP32 drone over Bluetooth. The Swing UI sends PID, thrust, and desired-angle values to an ESP32-compatible Bluetooth link.
+Java Swing desktop controller for experimenting with an ESP32 drone link over Bluetooth. The main screen exposes PID values, desired angle, thrust controls, and a gradual kill-switch ramp-down.
 
-## Features
+## Data path
 
-- Bluetooth connection UI with configurable device address
-- Live PID and desired-angle controls
-- Manual thrust controls with configurable limits and step size
-- Kill-switch ramp-down behavior and periodic state streaming
-- Example connection and UI classes for experimentation
+```mermaid
+flowchart LR
+  UI[Swing controls] --> State[DroneState]
+  State --> Sender[20 Hz sender]
+  Sender --> Link[Bluetooth / serial link]
+  Link --> ESP[ESP32 firmware]
+  Kill[Kill switch] --> State
+```
+
+The controller sends five little-endian floats in order: `P`, `I`, `D`, `thrust`, and `desiredAngle`.
 
 ## Requirements
 
-- JDK 23 (as configured in `pom.xml`)
-- Maven 3.9+
-- A paired ESP32 Bluetooth SPP device and matching firmware packet format
-- A Bluetooth stack compatible with BlueCove or an equivalent serial-port setup
+- JDK 23 and Maven 3.9+
+- A paired ESP32 Bluetooth SPP device with matching firmware
+- A Bluetooth stack compatible with BlueCove, or a serial-port alternative such as jSerialComm
 
-## Setup
+## Build and run
 
-1. Pair the ESP32 with the computer.
-2. Build with `mvn package`.
-3. Run `com.tp.maven.ESP32BluetoothPIDImproved`, optionally passing the Bluetooth address as the first argument.
-4. Confirm the ESP32 firmware expects five little-endian floats: P, I, D, thrust, and desired angle.
+```bash
+mvn package
+```
 
-## Limitations and safety
+Run `com.tp.maven.ESP32BluetoothPIDImproved`. A Bluetooth address can be supplied as the first program argument; otherwise the UI starts with its default address for local testing.
 
-- BlueCove is legacy software and Bluetooth support is platform-dependent.
-- This is an experimental desktop controller, not a complete flight-safety system. Test with props removed or on a secured test rig, and implement a firmware watchdog that zeros thrust after link loss.
+## Safety and limits
+
+This is an experimental tuning tool, not a flight-safety system. Test with props removed or on a secured rig. The ESP32 firmware should independently zero thrust when packets stop arriving; a desktop application cannot guarantee safety after a dropped link. BlueCove is legacy and Bluetooth support varies by platform.
