@@ -10,7 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 /**
  * Drone PID / thrust controller.
@@ -50,9 +52,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * so a dropped connection doesn't leave the last thrust value "stuck" on.
  */
 public class ESP32BluetoothPIDImproved {
+    private static final Pattern BLUETOOTH_ADDRESS = Pattern.compile("[0-9A-F]{12}");
 
     public static void main(String[] args) {
-        String defaultAddress = args.length > 0 ? args[0] : "F4650B592456";
+        if (args.length > 0 && "--help".equals(args[0])) {
+            System.out.println("Usage: ESP32BluetoothPIDImproved [12-digit Bluetooth address]");
+            return;
+        }
+        String defaultAddress = args.length > 0 ? normalizeAddress(args[0]) : "F4650B592456";
 
         DroneState state = new DroneState();
         BluetoothLink link = new BluetoothLink();
@@ -61,6 +68,14 @@ public class ESP32BluetoothPIDImproved {
             ControlFrame frame = new ControlFrame(state, link, defaultAddress);
             frame.setVisible(true);
         });
+    }
+
+    private static String normalizeAddress(String value) {
+        String normalized = value.replace(":", "").replace("-", "").toUpperCase(Locale.ROOT);
+        if (!BLUETOOTH_ADDRESS.matcher(normalized).matches()) {
+            throw new IllegalArgumentException("Bluetooth address must contain exactly 12 hexadecimal characters.");
+        }
+        return normalized;
     }
 }
 

@@ -2,6 +2,10 @@
 
 Java Swing desktop controller for experimenting with an ESP32 drone link over Bluetooth. The main screen exposes PID values, desired angle, thrust controls, and a gradual kill-switch ramp-down.
 
+![Illustrative ESP32 controller cover](docs/esp32-cover.png)
+
+_Illustration for the repository cover; it is not a screenshot of the controller._
+
 ## Data path
 
 ```mermaid
@@ -28,6 +32,8 @@ mvn package
 ```
 
 Run `com.tp.maven.ESP32BluetoothPIDImproved`. A Bluetooth address can be supplied as the first program argument; otherwise the UI starts with its default address for local testing.
+
+Addresses may be supplied with or without `:`/`-` separators. Invalid addresses are rejected before the controller opens. Use `--help` to print the command format.
 
 ## Safety and limits
 
